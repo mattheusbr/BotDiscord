@@ -73,8 +73,7 @@ function createEmbed(news, client) {
     .setTitle(_new.title)
     .setURL(_new.url)	    
     .setTimestamp(new Date(_new.publishedAt))
-    .setFooter({ text: _new.author})    
-    .addComponents(row);
+    .setFooter({ text: _new.author});    
                 
     embeds.push(exampleEmbed);
   });

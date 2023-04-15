@@ -1,4 +1,6 @@
-const {EmbedBuilder, ApplicationCommandType} = require("discord.js");
+const {EmbedBuilder, ApplicationCommandType, ButtonStyle, MessageButton, MessageActionRow} = require("discord.js");
+const {PaginationWrapper} = require("djs-button-pages");
+const {NextPageButton, PreviousPageButton} = require('@djs-button-pages/presets');
 const NewsAPI = require('newsapi');
 
 module.exports = {
@@ -31,33 +33,51 @@ module.exports = {
   run: async (client, interaction) => {
     const config = require("./../config.json");
     const newsapi = new NewsAPI(config.token_newsapi);
-
-    function createEmbed(news) {
-        let embeds = [];
-      
-        news.forEach(_new => {
-          const exampleEmbed = new EmbedBuilder()
-          .setColor(0x0099FF)
-          .setTitle(_new.source.name)
-          .setURL(_new.url)	
-          .setDescription(_new.title)	          
-          .setTimestamp(new Date(_new.publishedAt))
-          .setFooter({ text: _new.author});
-      
-          embeds.push(exampleEmbed);
-        });
-      
-        return embeds;
-    }
-
+    const buttons =
+    [
+        new PreviousPageButton({custom_id: "prev_page", emoji: "◀", style: ButtonStyle.Secondary}),
+        new NextPageButton({custom_id: "next_page", emoji: "▶", style: ButtonStyle.Secondary}),
+    ];
+    
     const response = await newsapi.v2.topHeadlines({
         country: 'br',
         category: `${interaction.options.getString('categoria')}`,
         pageSize: 10
     });
-  
-    const articles = response.articles;    
-    let embeds = createEmbed(articles);
-    interaction.reply({ embeds: embeds });
-  }
+      
+    let embeds = createEmbed(response.articles, client);
+    const pagination = new PaginationWrapper()
+    .setButtons(buttons)
+    .setEmbeds(embeds)
+    .setTime(60000);
+
+    await pagination.interactionReply(interaction);
+  } 
+}
+
+function createEmbed(news, client) {
+  let embeds = [];
+
+  news.forEach((_new, index) => {
+    const row = new MessageActionRow()
+    .addComponents(
+      new MessageButton()
+        .setCustomId('myButton')
+        .setLabel('Clique aqui')
+        .setStyle('PRIMARY')
+    );
+
+    const exampleEmbed = new EmbedBuilder()
+    .setAuthor({ name: client.user.username, iconURL: client.user.displayAvatarURL({ dynamic: true }) })
+    .setColor(0x0099FF)
+    .setTitle(_new.title)
+    .setURL(_new.url)	    
+    .setTimestamp(new Date(_new.publishedAt))
+    .setFooter({ text: _new.author})    
+    .addComponents(row);
+                
+    embeds.push(exampleEmbed);
+  });
+
+  return embeds;
 }

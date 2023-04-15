@@ -59,14 +59,6 @@ function createEmbed(news, client) {
   let embeds = [];
 
   news.forEach((_new, index) => {
-    const row = new MessageActionRow()
-    .addComponents(
-      new MessageButton()
-        .setCustomId('myButton')
-        .setLabel('Clique aqui')
-        .setStyle('PRIMARY')
-    );
-
     const exampleEmbed = new EmbedBuilder()
     .setAuthor({ name: client.user.username, iconURL: client.user.displayAvatarURL({ dynamic: true }) })
     .setColor(0x0099FF)
